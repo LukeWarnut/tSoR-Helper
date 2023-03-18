@@ -6,8 +6,6 @@ import soundfile
 import colorama
 import statistics
 import zlib
-from mutagen.mp3 import MP3
-from mutagen.ogg import OggFileType
 from colorama import Fore
 
 os.system('color')
@@ -28,8 +26,6 @@ file_lists_to_print = {
 }
 
 ### Check Functions ###
-
-import soundfile
 
 def check_file_format(file_path):
     _, file_extension = os.path.splitext(file_path)
@@ -59,7 +55,6 @@ def check_file_format(file_path):
             # Unsupported audio
             else:
                 misc_files.append(file_path)
-
 
     # Not a valid audio file
     except soundfile.SoundFileError:
