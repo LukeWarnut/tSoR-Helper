@@ -1,6 +1,9 @@
 # tSoR-Helper
 A tool to help check submissions on The Sounds Resource
 
+### Dependencies (Ignore if using exe):
+`pip install mutagen soundfile colorama`
+
 ## Features
 - Displays file formats, sample rates, and bitrates
 - Finds potential music files (duration longer than one minute)
