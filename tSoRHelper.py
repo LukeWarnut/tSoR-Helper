@@ -187,7 +187,7 @@ def delete_duplicate_files():
                 # Delete the duplicate file
                 os.remove(file_path)
 
-                for file_list in file_lists_dup:
+                for file_list in file_lists:
                     if file_path in file_list:
                         file_list.remove(file_path)
                 
