@@ -115,7 +115,8 @@ def check_bitrate():
         print("Bitrate:")
         for bitrate, count in bitrates.items():
             percentage = (count / total_files) * 100
-            print(f"{bitrate} kbps: {percentage:.0f}%\n")
+            print(f"{bitrate} kbps: {percentage:.0f}%")
+        print();
 
 def check_file_duration():
     for file_path in wav_files:
