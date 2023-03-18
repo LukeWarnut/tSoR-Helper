@@ -29,6 +29,7 @@ file_lists_to_print = {
 
 def check_file_format(file_path):
     _, file_extension = os.path.splitext(file_path)
+    valid_wav_subtypes = ['PCM_16', 'PCM_U8', 'FLOAT']
 
     if file_extension.lower() == ".txt":
         txt_files.append(file_path)
@@ -38,7 +39,7 @@ def check_file_format(file_path):
         with soundfile.SoundFile(file_path) as sf:
 
             # Wave & Floating-Point Wave detection
-            if sf.format == 'WAV' and (sf.subtype == 'PCM_16' or sf.subtype == 'FLOAT'):
+            if sf.format == 'WAV' and (sf.subtype in valid_wav_subtypes):
                 wav_files.append(file_path)
                 return
 
