@@ -2,7 +2,11 @@
 A tool to help check submissions on The Sounds Resource
 
 ## Features
-- 
+- Displays file formats, sample rates, and bitrates
+- Finds potential music files (duration longer than one minute)
+- Checks if the file extension matches the file format
+- Deletes duplicate files
+- Deletes garbage files (such as desktop.ini and thumbs.db)
 
 ## Usage
 - Run the *.py or *.exe in the command prompt of your choosing
