@@ -1,6 +1,8 @@
 import os
 import mutagen
-import wave
+import mutagen.oggvorbis
+import mutagen.mp3
+import soundfile
 import colorama
 import statistics
 import zlib
@@ -17,7 +19,8 @@ misc_files = []
 killed_files = []
 long_duration_files = []
 
-file_lists = {
+file_lists = [wav_files, mp3_files, ogg_files]
+file_lists_to_print = {
     'MP3 files': mp3_files,
     'WAV files': wav_files,
     'OGG files': ogg_files,
@@ -25,6 +28,8 @@ file_lists = {
 }
 
 ### Check Functions ###
+
+import soundfile
 
 def check_file_format(file_path):
     _, file_extension = os.path.splitext(file_path)
@@ -34,21 +39,31 @@ def check_file_format(file_path):
         return
 
     try:
-        # Checks if valid wave file
-        with wave.open(file_path, 'rb') as wav_file:
-            if wav_file.getsampwidth() == 2 and wav_file.getcomptype() == 'NONE':
+        with soundfile.SoundFile(file_path) as sf:
+
+            # Wave & Floating-Point Wave detection
+            if sf.format == 'WAV' and (sf.subtype == 'PCM_16' or sf.subtype == 'FLOAT'):
                 wav_files.append(file_path)
                 return
 
-    # If not a valid wav file, checks for other formats
-    except (wave.Error, mutagen.MutagenError):
-        audio = mutagen.File(file_path, easy=True)
-        if isinstance(audio, MP3):
-            mp3_files.append(file_path)
-        elif isinstance(audio, OggFileType):
-            ogg_files.append(file_path)
-        else:
-            misc_files.append(file_path)
+            # MP3
+            elif sf.subtype == 'MPEG_LAYER_III':
+                mp3_files.append(file_path)
+                return
+
+            # Ogg Vorbis
+            elif sf.subtype == 'VORBIS':
+                ogg_files.append(file_path)
+                return
+
+            # Unsupported audio
+            else:
+                misc_files.append(file_path)
+
+
+    # Not a valid audio file
+    except soundfile.SoundFileError:
+        misc_files.append(file_path)
 
 def kill_garbage_files(file_name, file_path):
     garbage_files = ["thumbs.db", "desktop.ini", ".DS_Store"]
@@ -65,20 +80,11 @@ def check_sample_rate():
     total_files = len(wav_files) + len(ogg_files) + len(mp3_files)
     print("\nSample Rate:")
 
-    for file_path in wav_files:
-        with wave.open(file_path, 'rb') as wav_file:
-            sample_rate = wav_file.getframerate()
-            sample_rates[sample_rate] = sample_rates.get(sample_rate, 0) + 1
-
-    for file_path in ogg_files:
-        audio = mutagen.oggvorbis.OggVorbis(file_path)
-        sample_rate = int(audio.info.sample_rate)
-        sample_rates[sample_rate] = sample_rates.get(sample_rate, 0) + 1
-
-    for file_path in mp3_files:
-        audio = mutagen.mp3.MP3(file_path)
-        sample_rate = int(audio.info.sample_rate)
-        sample_rates[sample_rate] = sample_rates.get(sample_rate, 0) + 1
+    for file_list in file_lists:
+        for file_path in file_list:
+            with soundfile.SoundFile(file_path) as sf:
+                sample_rate = sf.samplerate
+                sample_rates[sample_rate] = sample_rates.get(sample_rate, 0) + 1
 
     for sample_rate, count in sample_rates.items():
         percentage = (count / total_files) * 100
@@ -90,10 +96,14 @@ def check_bitrate():
     print("")
 
     for file_path in wav_files:
-        with wave.open(file_path, 'rb') as wav_file:
-            bitrate = int(wav_file.getsampwidth() * wav_file.getframerate() * 8 / 1000)
-            bitrates[bitrate] = bitrates.get(bitrate, 0) + 1
+        with soundfile.SoundFile(file_path) as sf:
+            sample_width_bits = 16 if sf.subtype == 'PCM_16' else 32
+            samplerate = sf.samplerate
+            channels = sf.channels
 
+        bitrate = int(samplerate * channels * sample_width_bits / 1000)
+        bitrates[bitrate] = bitrates.get(bitrate, 0) + 1
+        
     for file_path in mp3_files:
         audio = mutagen.mp3.MP3(file_path)
         bitrate = int(audio.info.bitrate / 1000)
@@ -120,8 +130,8 @@ def check_bitrate():
 
 def check_file_duration():
     for file_path in wav_files:
-        with wave.open(file_path, 'rb') as wav_file:
-            duration = wav_file.getnframes() / wav_file.getframerate()
+        with soundfile.SoundFile(file_path) as sf:
+            duration = len(sf) / sf.samplerate
             if duration > 60:
                 long_duration_files.append(file_path)
 
@@ -161,9 +171,7 @@ def delete_duplicate_files():
     
     file_hashes = {}
     
-    file_lists_dup = [wav_files, mp3_files, ogg_files]
-    
-    for file_list in file_lists_dup:
+    for file_list in file_lists:
         for file_path in file_list:
             if os.path.exists(file_path):
                 file_hash = hash_file(file_path)
@@ -233,7 +241,7 @@ def final_results():
 
     # List file types
     print("\nFile Count:")
-    for list_name, file_list in file_lists.items():
+    for list_name, file_list in file_lists_to_print.items():
         if len(file_list) > 0:
             print(f"{list_name}: {len(file_list)} files")
 
