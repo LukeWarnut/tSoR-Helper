@@ -164,7 +164,6 @@ def check_correct_file_extension():
     check_correct_file_extension_helper(ogg_files, ".ogg")
 
 def delete_duplicate_files():
-    
     file_hashes = {}
     
     for file_list in file_lists:
@@ -269,12 +268,13 @@ def final_results():
 
 def main():
     given_directory = input("Input sound directory: ")
-    
-    if os.path.isdir(given_directory):
+    given_directory = given_directory.strip("\"'")
+
+    if os.path.exists(given_directory):
         process_directory(given_directory)
-        final_results()        
+        final_results()
     else:
-        print_message(0, "The specified directory does not exist.")
+        print_message(0, "The specified directory does not exist: " + given_directory)
 
 if __name__ == "__main__":
     main()
