@@ -29,7 +29,7 @@ file_lists_to_print = {
 
 def check_file_format(file_path):
     _, file_extension = os.path.splitext(file_path)
-    valid_wav_subtypes = ['PCM_16', 'PCM_U8', 'FLOAT']
+    valid_wav_subtypes = ['PCM_16', 'PCM_24', 'PCM_32', 'PCM_U8', 'FLOAT']
 
     if file_extension.lower() == ".txt":
         txt_files.append(file_path)
