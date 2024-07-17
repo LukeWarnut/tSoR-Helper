@@ -273,6 +273,7 @@ def main():
     if os.path.exists(given_directory):
         process_directory(given_directory)
         final_results()
+        input("Press ENTER to close...")
     else:
         print_message(0, "The specified directory does not exist: " + given_directory)
 
