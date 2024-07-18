@@ -18,6 +18,7 @@ killed_files = []
 long_duration_files = []
 
 file_lists = [wav_files, mp3_files, ogg_files]
+valid_wav_subtypes = ['PCM_16', 'PCM_24', 'PCM_32', 'PCM_U8', 'FLOAT']
 file_lists_to_print = {
     'MP3 files': mp3_files,
     'WAV files': wav_files,
@@ -29,7 +30,6 @@ file_lists_to_print = {
 
 def check_file_format(file_path):
     _, file_extension = os.path.splitext(file_path)
-    valid_wav_subtypes = ['PCM_16', 'PCM_24', 'PCM_32', 'PCM_U8', 'FLOAT']
 
     if file_extension.lower() == ".txt":
         txt_files.append(file_path)
@@ -38,7 +38,7 @@ def check_file_format(file_path):
     try:
         with soundfile.SoundFile(file_path) as sf:
 
-            # Wave & Floating-Point Wave detection
+            # Wave & subtype detection
             if sf.format == 'WAV' and (sf.subtype in valid_wav_subtypes):
                 wav_files.append(file_path)
                 return
@@ -264,7 +264,12 @@ def final_results():
     # Unknown file messages
     for file_path in misc_files:
         file_name = os.path.basename(file_path)
-        print_message(0, "WARNING: Unknown file format: " + file_name);
+        sf = soundfile.SoundFile(file_path)
+
+        if sf.format == 'WAV' and (sf.subtype not in valid_wav_subtypes):
+            print_message(0, "WARNING: Invalid WAV subtype. Try converting in foobar2000: " + file_name);
+        else:
+            print_message(0, "WARNING: Unknown file format: " + file_name);
 
 def main():
     given_directory = input("Input sound directory: ")
