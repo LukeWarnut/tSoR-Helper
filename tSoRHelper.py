@@ -15,6 +15,7 @@ ogg_files = []
 txt_files = []
 misc_files = []
 killed_files = []
+killed_folders = []
 long_duration_files = []
 
 file_lists = [wav_files, mp3_files, ogg_files]
@@ -70,6 +71,23 @@ def kill_garbage_files(file_name, file_path):
             killed_files.append(file_name)
         except OSError as e:
             print_message(0, f"Error accessing {file_name}. Reason: {e}")
+
+def kill_garbage_folders(dir_name, dir_path):
+    garbage_folders = ["__MACOSX"]
+
+    if dir_name.lower() in (garbage.lower() for garbage in garbage_folders):
+        try:
+            # Deletes all files within the garbage folder
+            for filename in os.listdir(dir_path):
+                file = os.path.join(dir_path, filename)
+                if os.path.isfile(file):
+                    os.remove(file)
+
+            # Deletes the folder
+            os.rmdir(dir_path)
+            killed_folders.append(dir_name)
+        except OSError as e:
+            print_message(0, f"Error accessing {dir_name}. Reason: {e}")
 
 def check_sample_rate():
     sample_rates = {}
@@ -224,6 +242,10 @@ def hash_file(file_path):
 # Goes through the given directory and executes the check functions
 def process_directory(given_directory):
     for root, dirs, files in os.walk(given_directory):
+        for dir_name in dirs:
+            dir_path = os.path.join(root, dir_name)
+            kill_garbage_folders(dir_name, dir_path)
+
         for file_name in files:
             file_path = os.path.join(root, file_name)
             kill_garbage_files(file_name, file_path)
@@ -251,6 +273,10 @@ def final_results():
         file_name = os.path.basename(file_path)
         print_message(2, "Garbage file deleted: " + file_name);
 
+    for dir_path in killed_folders:
+        dir_name = os.path.basename(dir_path)
+        print_message(2, "Garbage folder deleted: " + dir_name);
+
     check_correct_file_extension()
     delete_duplicate_files()
 
@@ -266,6 +292,7 @@ def final_results():
         file_name = os.path.basename(file_path)
         sf = soundfile.SoundFile(file_path)
 
+        # Check for unknown WAV subtype
         if sf.format == 'WAV' and (sf.subtype not in valid_wav_subtypes):
             print_message(0, "WARNING: Invalid WAV subtype. Try converting in foobar2000: " + file_name);
         else:
